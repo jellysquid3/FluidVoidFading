@@ -34,6 +34,7 @@ public abstract class FluidRendererMixin {
         }
     }
 
+    @Unique
     private static boolean isDirectlyAboveVoid(BlockView world, BlockPos blockPos) {
         return blockPos.getY() == world.getBottomY();
     }
@@ -45,6 +46,7 @@ public abstract class FluidRendererMixin {
         }
     }
 
+    @Unique
     private void renderFluidInVoid(BlockRenderView world, BlockPos pos, VertexConsumer vertexConsumer, FluidState fluidState) {
         Fluid fluid = fluidState.getFluid();
         if (fluid != Fluids.EMPTY) {
