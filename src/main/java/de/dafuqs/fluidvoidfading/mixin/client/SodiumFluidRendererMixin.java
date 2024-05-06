@@ -48,21 +48,21 @@ public abstract class SodiumFluidRendererMixin {
     @Shadow protected abstract void writeQuad(ChunkModelBuilder builder, Material material, BlockPos offset, ModelQuadView quad, ModelQuadFacing facing, boolean flip);
     
     @Inject(method = "render", at = @At("HEAD"))
-    public void render(WorldSlice world, FluidState fluidState, BlockPos pos, BlockPos offset, ChunkBuildBuffers buffers, CallbackInfo cir) {
+    public void fluidVoidFading$render(WorldSlice world, FluidState fluidState, BlockPos pos, BlockPos offset, ChunkBuildBuffers buffers, CallbackInfo cir) {
         if (pos.getY() == world.getBottomY()) {
-            renderFluidInVoid(world, fluidState, pos, offset, buffers);
+            fluidVoidFading$renderFluidInVoid(world, fluidState, pos, offset, buffers);
         }
     }
 
     @Inject(method = "isSideExposed", at = @At("HEAD"), cancellable = true)
-    private void isSideExposed(BlockRenderView world, int x, int y, int z, Direction dir, float height, CallbackInfoReturnable<Boolean> cir) {
+    private void fluidVoidFading$isSideExposed(BlockRenderView world, int x, int y, int z, Direction dir, float height, CallbackInfoReturnable<Boolean> cir) {
         if (dir == Direction.DOWN && y == world.getBottomY()) {
             cir.setReturnValue(false);
         }
     }
     
     @Unique
-    private void renderFluidInVoid(WorldSlice world, @NotNull FluidState fluidState, BlockPos blockPos, BlockPos offset, ChunkBuildBuffers buffers) {
+    private void fluidVoidFading$renderFluidInVoid(WorldSlice world, @NotNull FluidState fluidState, BlockPos blockPos, BlockPos offset, ChunkBuildBuffers buffers) {
         Fluid fluid = fluidState.getFluid();
         Material material = DefaultMaterials.forFluidState(fluidState);
         ChunkModelBuilder meshBuilder = buffers.get(material);

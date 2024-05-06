@@ -28,26 +28,26 @@ public abstract class FluidRendererMixin {
     }
 
     @Inject(method = "render", at = @At("HEAD"))
-    public void render(BlockRenderView world, BlockPos pos, VertexConsumer vertexConsumer, BlockState blockState, FluidState fluidState, CallbackInfo ci) {
-        if (isDirectlyAboveVoid(world, pos)) {
-            renderFluidInVoid(world, pos, vertexConsumer, fluidState);
+    public void fluidVoidFading$render(BlockRenderView world, BlockPos pos, VertexConsumer vertexConsumer, BlockState blockState, FluidState fluidState, CallbackInfo ci) {
+        if (fluidVoidFading$isDirectlyAboveVoid(world, pos)) {
+            fluidVoidFading$renderFluidInVoid(world, pos, vertexConsumer, fluidState);
         }
     }
 
     @Unique
-    private static boolean isDirectlyAboveVoid(BlockView world, BlockPos blockPos) {
+    private static boolean fluidVoidFading$isDirectlyAboveVoid(BlockView world, BlockPos blockPos) {
         return blockPos.getY() == world.getBottomY();
     }
 
     @Inject(method = "isSideCovered(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/Direction;FLnet/minecraft/block/BlockState;)Z", at = @At("HEAD"), cancellable = true)
-    private static void isSideCovered(BlockView world, BlockPos pos, Direction direction, float maxDeviation, BlockState state, CallbackInfoReturnable<Boolean> cir) {
-        if (direction == Direction.DOWN && isDirectlyAboveVoid(world, pos)) {
+    private static void fluidVoidFading$isSideCovered(BlockView world, BlockPos pos, Direction direction, float maxDeviation, BlockState state, CallbackInfoReturnable<Boolean> cir) {
+        if (direction == Direction.DOWN && fluidVoidFading$isDirectlyAboveVoid(world, pos)) {
             cir.setReturnValue(true);
         }
     }
 
     @Unique
-    private void renderFluidInVoid(BlockRenderView world, BlockPos pos, VertexConsumer vertexConsumer, FluidState fluidState) {
+    private void fluidVoidFading$renderFluidInVoid(BlockRenderView world, BlockPos pos, VertexConsumer vertexConsumer, FluidState fluidState) {
         Fluid fluid = fluidState.getFluid();
         if (fluid != Fluids.EMPTY) {
             BlockState northBlockState = world.getBlockState(pos.offset(Direction.NORTH));
