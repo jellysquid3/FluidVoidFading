@@ -26,9 +26,9 @@
     "fluidvoidfading.mixins.json"
   ],
   "depends": {
-    "minecraft": ">=1.20.4",
+    "minecraft": ">=1.20.6",
     "fabricloader": "*",
-    "cloth-config": "*",
-    "fabric-api": "*"
+    "fabric-api": "*",
+    "cloth-config": "*"
   }
 }
