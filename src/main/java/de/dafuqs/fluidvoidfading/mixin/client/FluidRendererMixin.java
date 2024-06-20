@@ -71,9 +71,9 @@ public abstract class FluidRendererMixin {
             float o = 1.0F;
             float p = 1.0F;
             float q = 1.0F;
-            double d = (pos.getX() & 15);
-            double e = (pos.getY() & 15);
-            double r = (pos.getZ() & 15);
+            float d = (pos.getX() & 15);
+            float e = (pos.getY() & 15);
+            float r = (pos.getZ() & 15);
             float t = 0.0F;
             float ca = 0;
             float cb;
@@ -96,41 +96,41 @@ public abstract class FluidRendererMixin {
             float alpha3 = 0.0F;
 
             for (Direction direction : Direction.Type.HORIZONTAL) { // directions
-                double x1;
-                double z1;
-                double x2;
-                double z2;
+                float x1;
+                float z1;
+                float x2;
+                float z2;
                 boolean shouldRender;
                 if (direction == Direction.NORTH) {
                     ca = n;
                     cb = q;
                     x1 = d;
-                    x2 = d + 1.0D;
-                    z1 = r + 0.0010000000474974513D;
-                    z2 = r + 0.0010000000474974513D;
+                    x2 = d + 1.0F;
+                    z1 = r + 0.001F;
+                    z2 = r + 0.001F;
                     shouldRender = sameFluidNorth;
                 } else if (direction == Direction.SOUTH) {
                     cb = o;
-                    x1 = d + 1.0D;
+                    x1 = d + 1.0F;
                     x2 = d;
-                    z1 = r + 1.0D - 0.0010000000474974513D;
-                    z2 = r + 1.0D - 0.0010000000474974513D;
+                    z1 = r + 1.0F - 0.001F;
+                    z2 = r + 1.0F - 0.001F;
                     shouldRender = sameFluidSouth;
                 } else if (direction == Direction.WEST) {
                     ca = o;
                     cb = n;
-                    x1 = d + 0.0010000000474974513D;
-                    x2 = d + 0.0010000000474974513D;
-                    z1 = r + 1.0D;
+                    x1 = d + 0.001F;
+                    x2 = d + 0.001F;
+                    z1 = r + 1.0F;
                     z2 = r;
                     shouldRender = sameFluidWest;
                 } else {
                     ca = q;
                     cb = p;
-                    x1 = d + 1.0D - 0.0010000000474974513D;
-                    x2 = d + 1.0D - 0.0010000000474974513D;
+                    x1 = d + 1.0F - 0.001F;
+                    x2 = d + 1.0F - 0.001F;
                     z1 = r;
-                    z2 = r + 1.0D;
+                    z2 = r + 1.0F;
                     shouldRender = sameFluidEast;
                 }
 
@@ -145,36 +145,36 @@ public abstract class FluidRendererMixin {
                     float red = brightnessUp * sidedBrightness * redF;
                     float green = brightnessUp * sidedBrightness * greenF;
                     float blue = brightnessUp * sidedBrightness * blueF;
-                    vertex(vertexConsumer, x1, e + (double) ca - 1, z1, red, green, blue, u1, v1, light, alpha1);
-                    vertex(vertexConsumer, x2, e + (double) cb - 1, z2, red, green, blue, u2, v2, light, alpha1);
-                    vertex(vertexConsumer, x2, e + (double) t - 1, z2, red, green, blue, u2, v3, light, alpha2);
-                    vertex(vertexConsumer, x1, e + (double) t - 1, z1, red, green, blue, u1, v3, light, alpha2);
+                    vertex(vertexConsumer, x1, e + ca - 1, z1, red, green, blue, u1, v1, light, alpha1);
+                    vertex(vertexConsumer, x2, e + cb - 1, z2, red, green, blue, u2, v2, light, alpha1);
+                    vertex(vertexConsumer, x2, e + t - 1, z2, red, green, blue, u2, v3, light, alpha2);
+                    vertex(vertexConsumer, x1, e + t - 1, z1, red, green, blue, u1, v3, light, alpha2);
 
-                    vertex(vertexConsumer, x1, e + (double) ca - 2, z1, red, green, blue, u1, v1, light, alpha2);
-                    vertex(vertexConsumer, x2, e + (double) cb - 2, z2, red, green, blue, u2, v2, light, alpha2);
-                    vertex(vertexConsumer, x2, e + (double) t - 2, z2, red, green, blue, u2, v3, light, alpha3);
-                    vertex(vertexConsumer, x1, e + (double) t - 2, z1, red, green, blue, u1, v3, light, alpha3);
+                    vertex(vertexConsumer, x1, e + ca - 2, z1, red, green, blue, u1, v1, light, alpha2);
+                    vertex(vertexConsumer, x2, e + cb - 2, z2, red, green, blue, u2, v2, light, alpha2);
+                    vertex(vertexConsumer, x2, e + t - 2, z2, red, green, blue, u2, v3, light, alpha3);
+                    vertex(vertexConsumer, x1, e + t - 2, z1, red, green, blue, u1, v3, light, alpha3);
                     if (sprite != this.waterOverlaySprite) {
-                        vertex(vertexConsumer, x1, e + (double) t - 1, z1, red, green, blue, u1, v3, light, alpha2);
-                        vertex(vertexConsumer, x2, e + (double) t - 1, z2, red, green, blue, u2, v3, light, alpha2);
-                        vertex(vertexConsumer, x2, e + (double) cb - 1, z2, red, green, blue, u2, v2, light, alpha1);
-                        vertex(vertexConsumer, x1, e + (double) ca - 1, z1, red, green, blue, u1, v1, light, alpha1);
+                        vertex(vertexConsumer, x1, e + t - 1, z1, red, green, blue, u1, v3, light, alpha2);
+                        vertex(vertexConsumer, x2, e + t - 1, z2, red, green, blue, u2, v3, light, alpha2);
+                        vertex(vertexConsumer, x2, e + cb - 1, z2, red, green, blue, u2, v2, light, alpha1);
+                        vertex(vertexConsumer, x1, e + ca - 1, z1, red, green, blue, u1, v1, light, alpha1);
 
-                        vertex(vertexConsumer, x1, e + (double) t - 2, z1, red, green, blue, u1, v3, light, alpha3);
-                        vertex(vertexConsumer, x2, e + (double) t - 2, z2, red, green, blue, u2, v3, light, alpha3);
-                        vertex(vertexConsumer, x2, e + (double) cb - 2, z2, red, green, blue, u2, v2, light, alpha2);
-                        vertex(vertexConsumer, x1, e + (double) ca - 2, z1, red, green, blue, u1, v1, light, alpha2);
+                        vertex(vertexConsumer, x1, e + t - 2, z1, red, green, blue, u1, v3, light, alpha3);
+                        vertex(vertexConsumer, x2, e + t - 2, z2, red, green, blue, u2, v3, light, alpha3);
+                        vertex(vertexConsumer, x2, e + cb - 2, z2, red, green, blue, u2, v2, light, alpha2);
+                        vertex(vertexConsumer, x1, e + ca - 2, z1, red, green, blue, u1, v1, light, alpha2);
                     }
                 }
             }
         }
 
     }
-
-    private void vertex(VertexConsumer vertexConsumer, double x, double y, double z, float red, float green, float blue, float u, float v, int light, float alpha) {
-        vertexConsumer.vertex(x, y, z).color(red, green, blue, alpha).texture(u, v).light(light).normal(0.0F, 1.0F, 0.0F).next();
+    
+    private void vertex(VertexConsumer vertexConsumer, float x, float y, float z, float red, float green, float blue, float u, float v, int light, float alpha) {
+        vertexConsumer.vertex(x, y, z).color(red, green, blue, alpha).texture(u, v).light(light).normal(0.0F, 1.0F, 0.0F);
     }
-
+    
     private static int[] unpackColor(int color) {
         final int[] colors = new int[4];
         colors[0] = color >> 24 & 0xff; // alpha
