@@ -15,6 +15,7 @@ import net.caffeinemc.mods.sodium.api.util.*;
 import net.fabricmc.fabric.api.client.render.fluid.v1.*;
 import net.minecraft.block.*;
 import net.minecraft.client.*;
+import net.minecraft.client.render.*;
 import net.minecraft.client.texture.*;
 import net.minecraft.fluid.*;
 import net.minecraft.registry.tag.*;
@@ -25,6 +26,8 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
 
+// TODO: This mixin is currently broken and does not work and I do not know, why
+// Hence the   "breaks": { "sodium": "*" } entry in the mod.json
 @Pseudo
 @Mixin(value = FluidRenderer.class, remap = false)
 public abstract class SodiumFluidRendererMixin {
@@ -46,8 +49,13 @@ public abstract class SodiumFluidRendererMixin {
     }
     
     @Shadow protected abstract void writeQuad(ChunkModelBuilder builder, Material material, BlockPos offset, ModelQuadView quad, ModelQuadFacing facing, boolean flip);
+	
+	@Shadow
+	private static FluidRenderHandler getFluidRenderHandler(FluidState fluidState) {
+		return null;
+	}
     
-    @Inject(method = "render", at = @At("HEAD"))
+    @Inject(method = "render", at = @At("TAIL"))
     public void fluidVoidFading$render(WorldSlice world, FluidState fluidState, BlockPos pos, BlockPos offset, ChunkBuildBuffers buffers, CallbackInfo cir) {
         if (pos.getY() == world.getBottomY()) {
             fluidVoidFading$renderFluidInVoid(world, fluidState, pos, offset, buffers);
@@ -64,7 +72,7 @@ public abstract class SodiumFluidRendererMixin {
     @Unique
     private void fluidVoidFading$renderFluidInVoid(WorldSlice world, @NotNull FluidState fluidState, BlockPos blockPos, BlockPos offset, ChunkBuildBuffers buffers) {
         Fluid fluid = fluidState.getFluid();
-        Material material = DefaultMaterials.forFluidState(fluidState);
+        Material material = DefaultMaterials.forRenderLayer(RenderLayer.getTranslucent());;
         ChunkModelBuilder meshBuilder = buffers.get(material);
         if (fluid != Fluids.EMPTY) {
             int posX = blockPos.getX();
@@ -86,13 +94,8 @@ public abstract class SodiumFluidRendererMixin {
             boolean sfEast = eastFluidState.getFluid().matchesType(fluidState.getFluid());
     
             boolean isWater = fluidState.isIn(FluidTags.WATER);
-            FluidRenderHandler handler = FluidRenderHandlerRegistry.INSTANCE.get(fluidState.getFluid());
-            if (handler == null) {
-                boolean isLava = fluidState.isIn(FluidTags.LAVA);
-                handler = FluidRenderHandlerRegistry.INSTANCE.get(isLava ? Fluids.LAVA : Fluids.WATER);
-            }
-            
-            ColorProvider<FluidState> colorizer = this.getColorProvider(fluid, handler);
+            FluidRenderHandler handler = getFluidRenderHandler(fluidState);
+            ColorProvider<FluidState> colorProvider = this.getColorProvider(fluid, handler);
             Sprite[] sprites = handler.getFluidSprites(world, blockPos, fluidState);
             float northWestHeight;
             float southWestHeight;
@@ -114,7 +117,6 @@ public abstract class SodiumFluidRendererMixin {
             float z1;
             float x2;
             float z2;
-            float u1;
             for (Direction dir : DirectionUtil.HORIZONTAL_DIRECTIONS) {
                 switch (dir) {
                     case NORTH:
@@ -180,8 +182,8 @@ public abstract class SodiumFluidRendererMixin {
                         isOverlay = true;
                     }
                 }
-        
-                u1 = sprite.getFrameU(0.F);
+                
+                float u1 = sprite.getFrameU(0.0F);
                 float u2 = sprite.getFrameU(0.5F);
                 float v1 = sprite.getFrameV((1.0F - c1) * 0.5F);
                 float v2 = sprite.getFrameV((1.0F - c2) * 0.5F);
@@ -194,42 +196,34 @@ public abstract class SodiumFluidRendererMixin {
                 float br = dir.getAxis() == Direction.Axis.Z ? 0.8F : 0.6F;
                 ModelQuadFacing facing = ModelQuadFacing.fromDirection(dir);
                 
-                int[] previousQuadColors = this.quadColors;
-                lighter.calculate(quad, blockPos, this.quadLightData, null, dir, false);
-                colorizer.getColors(world, blockPos, fluidState, quad, previousQuadColors);
-                int[] biomeColors = previousQuadColors;
-
-                this.calculateAlphaQuadColors(biomeColors, br, 1.0F, 0.3F);
-                this.writeQuad(meshBuilder, material, offset.offset(Direction.DOWN, 1), quad, facing, false);
+                int[] original = new int[]{this.quadColors[0], this.quadColors[1], this.quadColors[2], this.quadColors[3]};
+                
+                BlockPos downPos1 = offset.offset(Direction.DOWN, 1);
+                this.updateQuadWithAlpha(quad, world, blockPos, lighter, dir, br, colorProvider, fluidState, original, 1.0F, 0.3F);
+                this.writeQuad(meshBuilder, material, downPos1, quad, facing, false);
                 if (!isOverlay) {
-                    this.writeQuad(meshBuilder, material, offset.offset(Direction.DOWN, 1), quad, facing.getOpposite(), true);
-                }
-
-                this.calculateAlphaQuadColors(biomeColors, br, 0.3F, 0.0F);
-                this.writeQuad(meshBuilder, material, offset.offset(Direction.DOWN, 2), quad, facing, false);
-                if (!isOverlay) {
-                    this.writeQuad(meshBuilder, material, offset.offset(Direction.DOWN, 2), quad, facing.getOpposite(), true);
+                    this.writeQuad(meshBuilder, material, downPos1, quad, facing.getOpposite(), true);
                 }
                 
-                this.quadColors[0] = previousQuadColors[0];
-                this.quadColors[1] = previousQuadColors[1];
-                this.quadColors[2] = previousQuadColors[2];
-                this.quadColors[3] = previousQuadColors[3];
+                BlockPos downPos2 = offset.offset(Direction.DOWN, 2);
+                this.updateQuadWithAlpha(quad, world, blockPos, lighter, dir, br, colorProvider, fluidState, original, 0.3F, 0.0F);
+                this.writeQuad(meshBuilder, material, downPos2, quad, facing, false);
+                if (!isOverlay) {
+                    this.writeQuad(meshBuilder, material, downPos2, quad, facing.getOpposite(), true);
+                }
             }
         }
     }
     
     @Unique
-    private void calculateAlphaQuadColors(int[] biomeColors, float brightness, float alpha1, float alpha2) {
+    private void updateQuadWithAlpha(ModelQuadView quad, WorldSlice world, BlockPos pos, LightPipeline lighter, Direction dir, float brightness, ColorProvider<FluidState> colorProvider, FluidState fluidState, int[] original, float alphaStart, float alphaEnd) {
+        QuadLightData light = this.quadLightData;
+        lighter.calculate(quad, pos, light, null, dir, false);
+        colorProvider.getColors(world, pos, fluidState, quad, original);
+        
         for(int i = 0; i < 4; ++i) {
-            this.quadColors[i] = ColorABGR.withAlpha(biomeColors != null ? biomeColors[i] : -1, brightness);
-            float a = i == 0 || i == 3 ? alpha1 : alpha2;
-            this.quadColors[i] = ColorABGR.pack(
-                    ColorABGR.unpackRed(this.quadColors[i]) / 255F,
-                    ColorABGR.unpackGreen(this.quadColors[i]) / 255F,
-                    ColorABGR.unpackBlue(this.quadColors[i]) / 255F,
-                    ColorABGR.unpackAlpha(this.quadColors[i]) / 255F * a
-            );
+            float alpha = i == 0 || i == 3 ? alphaStart : alphaEnd;
+            this.quadColors[i] = ColorABGR.withAlpha(original[i], light.br[i] * brightness * alpha);
         }
     }
 
